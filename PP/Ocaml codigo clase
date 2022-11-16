@@ -1,0 +1,637 @@
+# print_endline "A";;
+A
+- : unit = ()
+
+# x let pi =2. *. asin 1.;; *se guarda un valor en una expresión*
+val pi : float = 3.14159265358979312
+
+# pi;;
+- : float = 3.14159265358979312
+
+# int_of_char 'a';; *Convierte un char en su numero de la tabla ASCII*
+- : int = 97
+
+# String.length "Hola";; *Dice la longitud del string*
+- : int = 4
+
+let pi=3. in pi *. pi+.sqrt pi;;*el pi se convierte en 3 en vez del valor asignado anteriormente*
+- : float = 10.7320508075688767
+# pi *. pi+.sqrt pi;; *pero en la siguiente operacion ya retorna su valor guardado*
+- : float = 11.6420582519948734
+
+# let x=1000;;
+val x : int = 1000
+# let y=let x=1024 in x*x*x;;(*aqui se guardaria el valor permanentamente*)
+val y : int = 1073741824
+# y;;
+- : int = 1073741824
+
+# (function true-> false| false->true) (2<3);;
+- : bool = false
+let no=function true-> false| false->true;;
+val no : bool -> bool = <fun>
+# no(3>2);;
+- : bool = false
+# no(3<2);;
+- : bool = true
+# let f= function true->false;;(*Daría fallo si diera falso*)                                
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+false
+val f : bool -> bool = <fun>
+# f(3>2);;
+- : bool = false
+# f(3<2);;
+Exception: Match_failure ("//toplevel//", 1, 7).
+
+***Evaluacion eager siempre valoraria una accion ej:let no=function true-> false| false->true;; daría siempre true pero al ser eager siempre lo comprovaria al contrario de la evaluacion lazy que ya 
+daria por hecho que da true***
+
+# let g=function _->true;; *convertiria cualquier tipo en true*
+val g : 'a -> bool = <fun>
+# g true;;
+- : bool = true
+# g 1;;
+- : bool = true
+# g "string";;
+- : bool = true
+
+# let alltrue = function true -> true | false -> true;;(*valen de bool a bool*)
+val alltrue : bool -> bool = <fun>
+# let alltrue = function (_:bool) -> true;;
+val alltrue : bool -> bool = <fun>
+# let alltrue = function true -> true | false -> true;;
+val alltrue : bool -> bool = <fun> 
+# let alltrue = function (_:bool) -> true;;(*de cualquier tipo a bool*)
+val alltrue : bool -> bool = <fun>
+
+# let notzero = function 0 -> false | _-> true;;
+val notzero : int -> bool = <fun>
+# notzero 3;;
+- : bool = true
+# notzero 0;;
+- : bool = false
+
+#let otra = function _ -> true | 0 -> false;;(*salta warning porque la segunda condicion nuca se utilizaria ya que al mirar la primera contendria el cero y siempre daria true a diferencia de la anterior y de ahi la importancia del orden de las condiciones*)
+Warning 11: this match case is unused.
+val otra : int -> bool = <fun>
+# otra 3;;
+- : bool = true
+# otra 0;;
+- : bool = true
+
+#let doble = 0->0| 1->2 | 2->4;;
+Error: Syntax error
+#let doble = function 0->0| 1->2 | 2->4;;
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+3
+val doble : int -> int = <fun>
+#let doble = function n-> 2*n;;(*manera correcta de ponerla*)
+val doble : int -> int = <fun>
+# doble (2+1);;
+- : int = 6
+# (function n-> 2* n) (2+1);;(*otra manera de hacerlo*)
+- : int = 6
+
+# let sqr = function x-> x*x;;(*de int a int*)
+val sqr : int -> int = <fun>
+# sqr 5;;
+- : int = 25
+# let sqrf = function x-> x*.x;;(*de float a float*)
+val sqrf : float -> float = <fun>
+# sqrf 1.4;;
+- : float = 1.95999999999999974
+# sqrf 2;;(*error porque le estas pasando un int a una fucion float*)
+Error: This expression has type int but an expression was expected of type
+         float
+
+# double sqr (8+2);;(*si no se pone nada el compilador se leeria de derecha a izquierda*)
+Error: Unbound value double
+Hint: Did you mean doble?
+# doble sqr (8+2);;
+Error: This function has type int -> int
+       It is applied to too many arguments; maybe you forgot a `;'.
+# doble (sqr(8+2));;
+- : int = 200
+# (doble sqr) (8+2);;
+Error: This expression has type int -> int
+       but an expression was expected of type int
+
+# let id = function x->x;;
+val id : 'a -> 'a = <fun>
+# id 3;;
+- : int = 3
+# id 9.1;;
+- : float = 9.1
+# id doble 3;;
+- : int = 6
+# (id doble) 3;;(*tambien tendria sentido cuando va asi, no como en el ejeplo anterior*)
+- : int = 6
+
+# let doble n =2*n;;(*otra manera de definir una funcion*)
+val doble : int -> int = <fun>
+# doble 3;;
+- : int = 6
+
+# let rec fact = function x -> if x = 0 then 1 else x * fact (x-1);;(*rec se utiliza para hacerlo recursivo y poder utiizar la definicion(fact) e su propia definicion*)
+val fact : int -> int = <fun>
+# fact 4;;
+- : int = 24
+# fact 10;;(* 10*9*8*7*6*5*4*3*2*1 *)
+- : int = 3628800
+
+# let absf = function x-> if x >= 0. then x else -. x;;
+val absf : float -> float = <fun>
+# absf 5.;;
+- : float = 5.
+# absf (-6.);;
+- : float = 6.
+
+# let circ r=  
+  let dospi = 4. *. asin 1. in dospi *. r;;
+val circ : float -> float = <fun>
+
+(*(<b1>||<b2>)= if <b1> then true else <b2>*)(*lazy, ya que se evalua b1 y si es verdadera ya no evalua b2*)
+(*(<b1>&&<b2>)= if <b1> then <b2> else false*)
+
+(*if <b> then <e1> else <e2> == (function true -> <e1> | false -> <e2>)<b>*)
+
+# let x =13;;
+val x : int = 13
+# let sumarx = function y -> x + y;;
+val sumarx : int -> int = <fun>
+# sumarx (2+1);;
+- : int = 16
+# let x = 10;;
+val x : int = 10
+# sumarx (2+1);;(*El valor de x no cambia*)
+- : int = 16
+
+let f = function x -> (function y -> x + y);;(*Representación de la suma mediante funciones*)
+val f : int -> int -> int = <fun>
+# f 3;;
+- : int -> int = <fun>
+# (f 3) 5;;(*O f 3 5;; seria lo mismo*)
+- : int = 8
+# (+);;(*Haría lo mismo que la funcion anterior*)
+- : int -> int -> int = <fun>
+# (+) 2;;
+- : int -> int = <fun>
+# (+) 2 3;;
+- : int = 5
+
+# (^);;
+- : string -> string -> string = <fun>
+# let saluda = (^) "Hola, ";;
+val saluda : string -> string = <fun>
+# saluda "Pepe";;
+- : string = "Hola, Pepe"
+# let op = (-) 0;;
+val op : int -> int = <fun>
+# op 10;;
+- : int = -10
+
+# 2,3;;
+- : int * int = (2, 3)
+# (2,3),true;;
+- : (int * int) * bool = ((2, 3), true)
+
+# fst;;
+- : 'a * 'b -> 'a = <fun>
+# fst (2,3);;
+- : int = 2
+# fst ((2,3),true);;
+- : int * int = (2, 3)
+
+(*curry=(a*b->c)->(a->b->c)*)
+(*umcurry=(a->b->c)->(a*b->c)*)
+# let fst = function x,_-> x;;
+val fst : 'a * 'b -> 'a = <fun>(*fst ya esta predefinida esto seria si quiesiermos hacerla nosotros*)
+let fst (x,_) = x;;
+val fst : 'a * 'b -> 'a = <fun> 
+
+# let rec quo x y = if x < y then x else 1 + quo (x-y) y;;
+val quo : int -> int -> int = <fun>
+# let rec rem x y = if x<y then x else rem (x-y) y;;(*esta es recursiva pero no tendría problema con el stack overflow ya que en esta recursividad va a menos y no a mas como por ejemplo fibonaci*)
+val rem : int -> int -> int = <fun>
+
+(*let rec div x y = if x < y then 0,x else q, r =div (x-y) y in 1+q,r;;*)
+
+# fib 35;;
+- : int = 9227465
+# Sys.time();;
+- : float = 0.397596
+# fib 40;;
+- : int = 102334155
+# Sys.time();;
+- : float = 4.336328
+
+let rec fib2  = function 1-> 1,0 | n-> let f1, f2 = fib2 (n-1) in f1 + f2 , f1;;
+let fib n = let rec fib2  = function 1-> 1,0 | n-> let f1, f2 = fib2 (n-1) in f1 + f2 , f1 in fst (fib2 n);;
+
+# [1;2;3];;
+- : int list = [1; 2; 3]
+# let l =['a';'e';'i';'u'];;
+val l : char list = ['a'; 'e'; 'i'; 'u']
+# List.hd;;
+- : 'a list -> 'a = <fun>
+# List.hd l;;
+- : char = 'a'
+# List.tl;;
+- : 'a list -> 'a list = <fun>
+# List.tl l;;         
+- : char list = ['e'; 'i'; 'u']
+# List.length l;;
+- : int = 4
+# let rec length l = if l =[] then 0 else 1 + length (List.tl l);;
+val length : 'a list -> int = <fun>
+# length l;;
+- : int = 4
+# let rec last l = if List.tl l =[] then List.hd l else last (List.tl l);;
+val last : 'a list -> 'a = <fun>
+# last l;;
+- : char = 'u'
+# List.rev l;;
+- : char list = ['u'; 'i'; 'e'; 'a']
+# List.append [1;2;3][10;100];;
+- : int list = [1; 2; 3; 10; 100]
+# List.nth l 2;;
+- : char = 'i'
+# List.map;;      
+- : ('a -> 'b) -> 'a list -> 'b list = <fun>
+# List.map abs [0;-1;1;-2;2];;
+- : int list = [0; 1; 1; 2; 2]
+# List.filter;;
+- : ('a -> bool) -> 'a list -> 'a list = <fun>
+# List.filter (function n-> n mod 2 = 0) [0;1;2;3;10;20;23];;
+- : int list = [0; 2; 10; 20]
+# List.mem 3 [0;1;2];;
+- : bool = false
+# List.mem 3 [0;1;3;2];;
+- : bool = true
+# List.exists (function n -> n mod 2 = 0) [1;3;5];;
+- : bool = false
+# List.exists (function n -> n mod 2 = 0) [1;3;5;2];;
+- : bool = true
+# List.exists (function n -> n mod 2 = 0) [];;   
+- : bool = false
+#  List.for_all (function n -> n mod 2 = 0) [2;4;6];;
+- : bool = true
+#  List.for_all (function n -> n mod 2 = 0) [2;1;4;6];;
+- : bool = false
+#  List.for_all (function n -> n mod 2 = 0) [];; 
+- : bool = true
+# List.find (function n-> n mod 2 = 0) [1;3;4;6];;
+- : int = 4
+# List.find (function n-> n mod 2 = 0) [1;3];;  
+Exception: Not_found.
+# List.init 10 float;;
+- : float list = [0.; 1.; 2.; 3.; 4.; 5.; 6.; 7.; 8.; 9.]
+# List.init 26 (function i-> char_of_int (65+1));;
+- : char list =
+['B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B';
+ 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B']
+# List.init 26 (function i-> char_of_int (65+i));;
+- : char list =
+['A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O';
+ 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z']
+
+(*match <e> with <p1> -> <<e1> | <p2> -> <e2> |... <pn> -> <en> *)
+# let l = ['a';'e';'i';'o';'u'];;
+val l : char list = ['a'; 'e'; 'i'; 'o'; 'u']
+
+# 1::[2;3;4];;
+- : int list = [1; 2; 3; 4]
+# 1::2::(3::(4::[]));;
+- : int list = [1; 2; 3; 4]
+
+# let h::t = l;;
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+[]
+val h : char = 'a'
+val t : char list = ['e'; 'i'; 'o'; 'u']
+# let x::y = t;;
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+[]
+val x : char = 'e'
+val y : char list = ['i'; 'o'; 'u']
+
+# let rec length = function [] -> 0 | _::t -> 1 + length t;;
+val length : 'a list -> int = <fun>
+#   length y;;
+- : int = 3
+
+# let length l = let rec aux s = function []-> s | _::t -> aux (s+1) length t in aux 0;; 
+
+let rec last = function h::[] -> h | _::t -> last t;;
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+[]
+val last : 'a list -> 'a = <fun>
+# last [];;
+Exception: Match_failure ("//toplevel//", 1, 15).(*error por lista vacia*)
+let rec last = function h::[] -> h | _::t -> last t | []-> raise (Failure "last") ;;
+# last[];;
+Exception: Failure "last".
+
+let hd (h::_) = h;;
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+[]
+val hd : 'a list -> 'a = <fun>
+
+# List.append [1;2;3] [10;100];;
+- : int list = [1; 2; 3; 10; 100]
+let rec append = function [] -> (function l -> l) | h::t -> (function l -> h::append t l);;
+val append : 'a list -> 'a list -> 'a list = <fun>
+# append [1;2;3] [10;100];;
+- : int list = [1; 2; 3; 10; 100]
+
+let rec append l1 l2 = match l1 with [] -> l2 | h::t -> h::append t l2;;
+val append : 'a list -> 'a list -> 'a list = <fun>
+# append [1;2;3] [10;100];;
+- : int list = [1; 2; 3; 10; 100]
+let rec rev_append l1 l2 = match l1 with [] -> l2 | h::t -> rev_append t (h::l2);; (*Esta es mejor ya que es recursiva*)
+val rev_append : 'a list -> 'a list -> 'a list = <fun>
+let rev l = rev_append l [];;
+val rev : 'a list -> 'a list = <fun>
+let tail_append l1 l2= rev_append(rev l1) l2;;
+
+# compare 4 5;;
+- : int = -1
+# compare 5 4;;
+- : int = 1
+
+# let compare_lengths l1 l2 = compare (List.length l1) (List.length l2);;
+val compare_lengths : 'a list -> 'b list -> int = <fun>
+# compare_lengths [1;2;3] ['a';'b'];;
+- : int = 1
+# compare_lengths [1;2;3] ['a';'b';'c'];;
+- : int = 0
+# compare_lengths [1;2;3] ['a';'b';'c';'d'];;
+- : int = -1
+# let rec compare_lengths = function [] -> (function [] -> 0 | _ -> -1) | _::t1 -> (function [] -> 1 | h2::t2 -> compare_lengths t1 t2);;
+val compare_lengths : 'a list -> 'b list -> int = <fun>
+
+# let rec compare_lengths l1 l2 = match (l1,l2) with [],[] -> 0 | [],_::_ -> -1 | _::_,[] -> 1 | _::t1,_::t2 -> compare_lengths t1 t2;;
+val compare_lengths : 'a list -> 'b list -> int = <fun>
+
+# let rec mem x = function [] -> false | h::t -> x = h || mem x t;;
+val mem : 'a -> 'a list -> bool = <fun>
+# let rec mem x l = match l with [] -> false | h::t -> x = h || mem x t;;
+val mem : 'a -> 'a list -> bool = <fun>
+
+# let rec prod_fact p i= if i = 0 then p else prod_fact (p*i) (i-1);;
+val prod_fact : int -> int -> int = <fun>
+# let fact n = prod_fact 1 n;;
+val fact : int -> int = <fun>
+# let fact n = let rec aux (p,i) = if i = 0 then p else aux (p*i, i-1) in aux (1,n);;
+val fact : int -> int = <fun>
+# let fact n = let rec aux i f = if i = n then f else aux (i+1) (f * (i+1)) in aux 0 1;;
+val fact : int -> int = <fun>
+
+let lmax l = let rec aux m = function [] -> m | h::t -> aux (max m h) t in aux h t;;
+let rec lmax = function h::[] -> h | h::t -> max h (lmax t);;
+
+# let fib n = let rec aux i f a = if i = n then f else aux (i+1) (f+a) f in aux 0 0 1;; (*definicion correcra de fibonaci*)
+val fib : int -> int = <fun>
+
+let rec fold_left op e = function  [] -> e | h::t -> fold_left op (op e h) t;;
+val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a = <fun>
+# fold_left (+) 0 [1;2;3;4;5];;
+- : int = 15
+let rec fold_right op l e = match l with []-> e | h::t -> op h (fold_right op t e);;
+val fold_right : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b = <fun>
+
+let rec sumlist = function [] -> 0 | h::t -> h + sumlist t;;
+val sumlist : int list -> int = <fun>
+let sumlist l = fold_left (+) 0 l;;(*mejor esta que es recursiva terminal*)
+val sumlist : int list -> int = <fun>
+
+let lmax (h::t) = fold_left max h t;;
+val lmax : 'a list -> 'a = <fun>
+let rec last = function h::[] -> h | _::t -> last t;;
+val last : 'a list -> 'a = <fun>
+let last (h::t) = fold_left (function x -> function y-> y) h t;;
+val last : 'a list -> 'a = <fun>
+let length l = fold_left (function s -> function _-> s + 1) 0 l;;
+val length : 'a list -> int = <fun>
+
+let rec for_all f = function []->true | h::t -> if f h then for_all f t else false;;
+val for_all : ('a -> bool) -> 'a list -> bool = <fun>
+let rec for_all f = function []-> true | h::t -> f h && for_all f t;;(*recursiva terminal, la mejor*)
+val for_all : ('a -> bool) -> 'a list -> bool = <fun>
+let for_all f l = List.fold_left(fun b x -> b && f x) true l;;
+val for_all : ('a -> bool) -> 'a list -> bool = <fun>
+for_all (fun x-> x>0) [2;0;5];;                                      
+- : bool = false
+for_all (fun x-> x>0) [2;3;5];;
+- : bool = true
+
+let rec sorted = function h1::h2::t -> h1 <= h2 && sorted (h2::t) | [] | _::[] -> true;;
+val sorted : 'a list -> bool = <fun>
+
+let rec insert x = function [] -> [x] | h::t -> if x <= h then x::h::t else h::insert x t;;
+val insert : 'a -> 'a list -> 'a list = <fun>
+insert 2 [1;3;4;5];;
+- : int list = [1; 2; 3; 4; 5]
+
+let rec i_sort = function []-> [] | h::t -> insert h (i_sort t);;(*va junto con el inseert*)
+val i_sort : 'a list -> 'a list = <fun>
+
+let crono f x = let t = Sys.time () in f x; Sys.time () -. t;;
+val crono : ('a -> 'b) -> 'a -> float = <fun>
+crono i_sort (List.rev(List.init 1000 abs));;
+float = 0.0236670000000000075
+
+let append l1 l2 = try List.append l1 l2 with Stack_overflow -> List.rev_append (List.rev l1) l2;;
+val append : 'a list -> 'a list -> 'a list = <fun>
+
+let rec insert x = function []-> [x] | h::t -> if x <= h then x::h::t else h::insert x t;;
+val insert : 'a -> 'a list -> 'a list = <fun>
+
+let insert' x l = let rec aux front = function [] -> List.rev (x::front) | h::t -> if x <= h then List.rev_append front (x::h::t) else aux (h::front) t in aux [] l;;(*version buena*) 
+val insert' : 'a -> 'a list -> 'a list = <fun>
+
+
+let rec isort = function [] -> [] | h::t -> insert h (isort t);;
+val isort : 'a list -> 'a list = <fun>
+
+let isort' l = let rec aux acc = function []->acc | h::t -> aux(insert' h acc) t in aux [] l;;(*versión buena*)
+val isort' : 'a list -> 'a list = <fun>
+
+let rec insert ord x = function [] -> [x] | h::t -> if ord x h then x::h::t else h::insert ord x t;;
+val insert : ('a -> 'a -> bool) -> 'a -> 'a list -> 'a list = <fun>
+
+let rec isort ord = function []->[] | h::t -> insert ord h (isort ord t);;
+val isort : ('a -> 'a -> bool) -> 'a list -> 'a list = <fun>
+
+let rec divide = function h1::h2::t -> let t1, t2 = divide t in h1::t1, h2::t2 | l -> l , [];;
+val divide : 'a list -> 'a list * 'a list = <fun>
+
+let rec merge l1 l2 = match l1, l2 with [], l | l, [] -> l | h1::t1, h2::t2 -> if h1 <= h2 then h1::merge t1 l2 else h2::merge l1 t2;;
+val merge : 'a list -> 'a list -> 'a list = <fun>
+
+let rec m_sort  = function [] -> [] | [h] -> [h] | l -> let l1, l2 = divide l in merge (m_sort l1) (m_sort l2);;
+val m_sort : 'a list -> 'a list = <fun>
+
+let come (i1,j1) (i2,j2) = i1 = i2 || j1 = j2 || abs(i2-i1) = abs (j2-j1);;
+
+let rec compatible p = function [] -> true | h::t -> not (come p h) && compatible p t;;
+
+let compatible p l = not(List.exists (come p) l);;(*otra manera de definirla*)
+
+let queens n = let rec completar path (i,j) = 
+if i > n then path
+ else if j > n then None 
+ else if compatible (i,j) path
+  then match completar ((i,j)::path) (i+1,1) with
+   None -> completar path (i,j+1)
+    | s-> s 
+    else completar path(i,j+1) 
+    then match  in completar [] (1,1);;
+
+let div x y = try div (x/y) with Division_by_zero -> NONE;;
+
+let hd' l = try Some (List.hd l) with Failure _ -> None;;
+
+# type int_o_no =
+UnInt of int
+|NoInt;;
+type int_o_no = UnInt of int | NoInt
+# UnInt ;;
+Error: The constructor UnInt expects 1 argument(s),
+but is applied here to 0 argument(s)
+# UnInt 2;;
+- : int_o_no = UnInt 2
+# UnInt 2 = UnInt 3;;
+- : bool = false
+# UnInt (2+1) = UnInt 3;;
+- : bool = true
+# NoInt;;
+- : int_o_no = NoInt
+# NoInt = UnInt 0;;
+- : bool = false
+# let div m n = match m,n with
+UnInt x, UnInt 0 -> NoInt
+|UnInt x, UnInt y -> UnInt(x/y)
+|_->NoInt;;
+val div : int_o_no -> int_o_no -> int_o_no = <fun>
+# div (UnInt 10) (UnInt 2);;
+- : int_o_no = UnInt 5
+# (//) (UnInt 10) (UnInt 2);;
+- : int_o_no = UnInt 5
+# UnInt 10 // UnInt 2;;
+- : int_o_no = UnInt 5
+# UnInt 10 // UnInt 0;;
+- : int_o_no = NoInt
+# UnInt 10 // NoInt ;;
+- : int_o_no = NoInt
+# NoInt // UnInt 10;;
+- : int_o_no = NoInt
+# type booleano =
+V | F;;
+type booleano = V | F
+# V;;
+- : booleano = V
+# F;;
+- : booleano = F
+# let conj b1 b2 = match b1,b2 with
+V,V -> V
+|_ -> F;;
+val conj : booleano -> booleano -> booleano = <fun>
+# let (&&&) = conj;;
+val ( &&& ) : booleano -> booleano -> booleano = <fun>
+# (V &&& F) &&& V;;
+- : booleano = F
+# type dia = Lu|Ma|Mi|Ju|Vi|Sa|Do;;
+type dia = Lu | Ma | Mi | Ju | Vi | Sa | Do
+# festivo Mi;;
+- : bool = false
+# festivo Do;;
+- : bool = t
+let festivo =
+function Do|Sa -> V
+|_ -> F;;
+# type nombre = Name of string;;
+type nombre = Name of string
+# Name "Pepe";;
+- : nombre = Name "Pepe"
+# "Pepe" = Name "Pepe";;
+Error: This expression has type nombre but an expression was expected of type
+String
+# type doble_int = L of int | R of int;;
+type doble_int = L of int | R of int
+# L 3;;
+- : doble_int = L 3
+# L 5;;
+- : doble_int = L 5
+# R 3;;
+- : doble_int = R 3
+# R 3 = L 3;;
+- : bool = false
+
+type 'a tree = V | N of 'a * 'a tree * 'a tree;;
+type 'a sttree = Leaf of 'a | Node of 'a * 'a sttree * 'a sttree;;
+# Leaf 2;;
+- : int sttree = Leaf 2
+# Leaf 4;;
+- : int sttree = Leaf 4
+# let st12 = Node(6,Leaf 5,Leaf 11);;
+val st12 : int sttree = Node (6, Leaf 5, Leaf 11)
+# let st1 = Node(7,Leaf 2, st12);;
+val st1 : int sttree = Node (7, Leaf 2, Node (6, Leaf 5, Leaf 11))
+let rec nnodos = function Leaf _->1 | Node (_,i,d) -> 1 + nnodos i + nnodos d;;
+let rec hojas = function Leaf x -> [x] | Node (_,i,d) -> hojas i @ hojas d;;
+# hojas st1;;
+- : int list = [2; 5; 11]
+let rec mirror = function Leaf x -> Leaf x | Node (r,i,d) -> Node (r,mirror d,mirror i);;
+# mirror st1;;
+- : int sttree = Node (7, Node (6, Leaf 11, Leaf 5), Leaf 2)
+type 'a gtree= Gt of 'a * 'a gtree list;;
+let h x = Gt (x,[]);;
+# h 2;;   
+- : int gtree = Gt (2, [])
+let d = Gt (5,[Gt(9,[h 4])]);;
+val d : int gtree = Gt (5, [Gt (9, [Gt (4, [])])])
+let i = Gt (7,[Gt(2,[]);Gt(10,[]);Gt(6,[h 5;h 11])]);;
+val i : int gtree =
+  Gt (7, [Gt (2, []); Gt (10, []); Gt (6, [Gt (5, []); Gt (11, [])])])
+let t = Gt(2,[i;d]);;
+val t : int gtree =
+  Gt (2,
+   [Gt (7, [Gt (2, []); Gt (10, []); Gt (6, [Gt (5, []); Gt (11, [])])]);
+    Gt (5, [Gt (9, [Gt (4, [])])])])
+
+let rec nnodos = function Gt(r,l) -> List.fold_left (+) 1 (List.map nnodos l);;
+
+(*let rec nnodos = function Gt (_,[]) -> 1 | Gt (r,h::t) -> nnodos h + nnodos faltan cositas*)
+let print_char c = output_char stdout c;;
+let output_string sal s = let n = String.length s in let rec loop i = if i >= n then () else (output_char sal s.[i]; loop (i+1)) in loop 0;; 
+val output_string : out_channel -> string -> unit = <fun>
+let output_string sal s = for i = 0 to String.length s - 1 do output_char sal s.[i] done;;
+
+let print_string s = output_string stdout s;;
+let print_endline s = print_string (s^"\n");;
+let s = open_out "prueba";;
+
+let f = open_in "prueba";;
+
+let rec output_string_list s = function [] -> () | h::t -> output_string s h; output_string_list s t;;
+let rec input_string_list f = try input_line f :: input_string_list f with End_of_file -> [];;
+
+let fact n = let f = ref 1 in for i = n downto 1 do f := !f * i done; !f;;
+val fact : int -> int = <fun>
+let fact n = let f = ref 1 in let i = ref 1 in while !i <= n do f := !i; i:= !i+1 done; !f;;
+
+let vprod v1 v2 = if Array.length v1 = Array.length v2 then (let p = ref 0. in for i = 0 to Array.length v1-1 do p := !p +.(*sin acabar*)
+let nombre p = p.nombre;;
+let mas_viejo p = {nombre = p.nombre; edad=p.edad + 1};;  
+let p2 = {edad = 18; nombre = "Mariaval p1 : persona = {"Pepe"; edad = }"
+
+let n = ref 0;;
+let turno = let n = ref 0 in function () -> n:= !n + 1 ; !n;; 
+let reset () = n := 0 end ;;
